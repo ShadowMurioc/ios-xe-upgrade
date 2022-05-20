@@ -1,0 +1,45 @@
+---
+- name: UPGRADE FIRMWARE
+  hosts: csr1k
+  connection: local
+  gather_facts: no
+
+ # inventory file defined 
+
+ # vars:
+ #   new_ios_version: 16.12.5
+ #   cli:
+ #     username: test
+ #     password: test
+
+  tasks:
+    - name: GATHER SWITCH FACTS
+      ios_facts:
+      register: network.FACTS
+    - debug: network.FACTS
+ #       provider: "{{ cli }}"
+ 
+    - name: UPLOAD IOS IMAGE IF NOT COMPLIANT
+      block:
+      - name: UPLOAD IOS IMAGE
+        command: "scp c1100-ucmk9.16.12.5.SPA.bin test@{{inventory_hostname}}:/c1100-ucmk9.16.12.5.SPA.bin"
+        register: upgrade-file.output
+      - debug: upgrade-file.output
+
+      - name: SET BOOT SYSTEM FLASH
+  #      ios_config:
+  #        provider: "{{ cli }}"
+          commands:
+            - "boot system flash bootflash:c1100-ucmk9.16.12.5.SPA.bin"
+
+      - name: REBOOT ROUTER
+  #      ios_command:
+  #        provider: "{{ cli }}"
+          commands:
+            - "wr mem\n"
+            - "reload\n"
+        register: reboot.output
+      - debug: reboot.output
+
+  #     when: ansible_net_version != new_ios_version
+...
